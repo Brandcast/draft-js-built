@@ -7,6 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @providesModule EditorState
+ * @format
  * @flow
  */
 
@@ -27,11 +28,7 @@ var SelectionState = require('./SelectionState');
 
 var nullthrows = require('fbjs/lib/nullthrows');
 
-var {
-  OrderedSet,
-  Record,
-  Stack
-} = Immutable;
+var { OrderedSet, Record, Stack } = Immutable;
 
 type EditorStateRecordType = {
   allowUndo: boolean;
@@ -452,9 +449,6 @@ function updateSelection(editorState: EditorState, selection: SelectionState, fo
  * Returns an OrderedMap that maps all available ContentBlock objects.
  */
 function generateNewTreeMap(contentState: ContentState, decorator?: ?DraftDecoratorType): OrderedMap<string, List<any>> {
-  /* $FlowFixMe(>=0.53.0 site=www,mobile) -
-   * should be fixed by * https://github.com/facebook/immutable-js/pull/1112
-   */
   return contentState.getBlockMap().map(block => BlockTree.generate(contentState, block, decorator)).toOrderedMap();
 }
 
@@ -479,9 +473,6 @@ function regenerateTreeForNewBlocks(editorState: EditorState, newBlockMap: Block
  * List comparison.
  */
 function regenerateTreeForNewDecorator(content: ContentState, blockMap: BlockMap, previousTreeMap: OrderedMap<string, List<any>>, decorator: DraftDecoratorType, existingDecorator: DraftDecoratorType): OrderedMap<string, List<any>> {
-  /* $FlowFixMe(>=0.53.0 site=www,mobile) -
-   * should be fixed by * https://github.com/facebook/immutable-js/pull/1112
-   */
   return previousTreeMap.merge(blockMap.toSeq().filter(block => {
     return decorator.getDecorations(block, content) !== existingDecorator.getDecorations(block, content);
   }).map(block => BlockTree.generate(content, block, decorator)));

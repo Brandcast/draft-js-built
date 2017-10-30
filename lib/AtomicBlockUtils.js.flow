@@ -8,6 +8,7 @@
  *
  * @providesModule AtomicBlockUtils
  * @typechecks
+ * @format
  * @flow
  */
 
@@ -27,10 +28,7 @@ const nullthrows = require('fbjs/lib/nullthrows');
 const generateRandomKey = require('./generateRandomKey');
 const moveBlockInContentState = require('./moveBlockInContentState');
 
-const {
-  List,
-  Repeat
-} = Immutable;
+const { List, Repeat } = Immutable;
 
 const AtomicBlockUtils = {
   insertAtomicBlock: function (editorState: EditorState, entityKey: string, character: string): EditorState {

@@ -8,6 +8,7 @@
  *
  * @providesModule DraftEditorDragHandler
  * @typechecks
+ * @format
  * @flow
  */
 
@@ -99,7 +100,6 @@ var DraftEditorDragHandler = {
 
     editor.update(insertTextAtSelection(editorState, dropSelection, data.getText()));
   }
-
 };
 
 function moveText(editorState: EditorState, targetSelection: SelectionState): EditorState {

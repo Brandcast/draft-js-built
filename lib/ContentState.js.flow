@@ -8,6 +8,7 @@
  *
  * @providesModule ContentState
  * @typechecks
+ * @format
  * @flow
  */
 
@@ -49,7 +50,6 @@ const defaultRecord: RecordProps = {
 const ContentStateRecord = Record(defaultRecord);
 
 class ContentState extends ContentStateRecord<RecordProps> {
-
   getEntityMap(): any {
     // TODO: update this when we fully remove DraftEntity
     return DraftEntity;
@@ -121,7 +121,8 @@ class ContentState extends ContentStateRecord<RecordProps> {
   }
 
   hasText(): boolean {
-    return this.getBlockMap().size > 1 || this.getFirstBlock().getLength() > 0;
+    var blockMap = this.getBlockMap();
+    return blockMap.size > 1 || this.getFirstBlock().getLength() > 0;
   }
 
   createEntity(type: DraftEntityType, mutability: DraftEntityMutability, data?: Object): ContentState {
