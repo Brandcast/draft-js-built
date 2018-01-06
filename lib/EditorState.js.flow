@@ -7,10 +7,18 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @providesModule EditorState
+ * @format
  * @flow
  */
 
 'use strict';
+
+import type { BlockMap } from './BlockMap';
+import type { DraftDecoratorType } from './DraftDecoratorType';
+import type { DraftInlineStyle } from './DraftInlineStyle';
+import type { EditorChangeType } from './EditorChangeType';
+import type { EntityMap } from './EntityMap';
+import type { List, OrderedMap } from 'immutable';
 
 var BlockTree = require('./BlockTree');
 var ContentState = require('./ContentState');
@@ -18,18 +26,7 @@ var EditorBidiService = require('./EditorBidiService');
 var Immutable = require('immutable');
 var SelectionState = require('./SelectionState');
 
-import type { BlockMap } from './BlockMap';
-import type { DraftDecoratorType } from './DraftDecoratorType';
-import type { DraftInlineStyle } from './DraftInlineStyle';
-import type { EntityMap } from './EntityMap';
-import type { List, OrderedMap } from 'immutable';
-import type { EditorChangeType } from './EditorChangeType';
-
-var {
-  OrderedSet,
-  Record,
-  Stack
-} = Immutable;
+var { OrderedSet, Record, Stack } = Immutable;
 
 type EditorStateRecordType = {
   allowUndo: boolean;
@@ -68,11 +65,11 @@ var EditorStateRecord = Record(defaultRecord);
 class EditorState {
   _immutable: EditorStateRecord;
 
-  static createEmpty(decorator?: DraftDecoratorType): EditorState {
+  static createEmpty(decorator?: ?DraftDecoratorType): EditorState {
     return EditorState.createWithContent(ContentState.createFromText(''), decorator);
   }
 
-  static createWithContent(contentState: ContentState, decorator?: DraftDecoratorType): EditorState {
+  static createWithContent(contentState: ContentState, decorator?: ?DraftDecoratorType): EditorState {
     var firstKey = contentState.getBlockMap().first().getKey();
     return EditorState.create({
       currentContent: contentState,
@@ -333,8 +330,10 @@ class EditorState {
 
     let inlineStyleOverride = editorState.getInlineStyleOverride();
 
-    // Don't discard inline style overrides on block type or depth changes.
-    if (changeType !== 'adjust-depth' && changeType !== 'change-block-type') {
+    // Don't discard inline style overrides for the following change types:
+    var overrideChangeTypes = ['adjust-depth', 'change-block-type', 'split-block'];
+
+    if (overrideChangeTypes.indexOf(changeType) === -1) {
       inlineStyleOverride = null;
     }
 
@@ -446,7 +445,7 @@ function updateSelection(editorState: EditorState, selection: SelectionState, fo
  * Regenerate the entire tree map for a given ContentState and decorator.
  * Returns an OrderedMap that maps all available ContentBlock objects.
  */
-function generateNewTreeMap(contentState: ContentState, decorator: ?DraftDecoratorType): OrderedMap<string, List<any>> {
+function generateNewTreeMap(contentState: ContentState, decorator?: ?DraftDecoratorType): OrderedMap<string, List<any>> {
   return contentState.getBlockMap().map(block => BlockTree.generate(contentState, block, decorator)).toOrderedMap();
 }
 
@@ -455,7 +454,7 @@ function generateNewTreeMap(contentState: ContentState, decorator: ?DraftDecorat
  * between the current editorState and newContent. Returns an OrderedMap
  * with only changed regenerated tree map objects.
  */
-function regenerateTreeForNewBlocks(editorState: EditorState, newBlockMap: BlockMap, newEntityMap: EntityMap, decorator: ?DraftDecoratorType): OrderedMap<string, List<any>> {
+function regenerateTreeForNewBlocks(editorState: EditorState, newBlockMap: BlockMap, newEntityMap: EntityMap, decorator?: ?DraftDecoratorType): OrderedMap<string, List<any>> {
   const contentState = editorState.getCurrentContent().set('entityMap', newEntityMap);
   var prevBlockMap = contentState.getBlockMap();
   var prevTreeMap = editorState.getImmutable().get('treeMap');
@@ -472,7 +471,7 @@ function regenerateTreeForNewBlocks(editorState: EditorState, newBlockMap: Block
  */
 function regenerateTreeForNewDecorator(content: ContentState, blockMap: BlockMap, previousTreeMap: OrderedMap<string, List<any>>, decorator: DraftDecoratorType, existingDecorator: DraftDecoratorType): OrderedMap<string, List<any>> {
   return previousTreeMap.merge(blockMap.toSeq().filter(block => {
-    return decorator.getDecorations(content, block) !== existingDecorator.getDecorations(content, block);
+    return decorator.getDecorations(block, content) !== existingDecorator.getDecorations(block, content);
   }).map(block => BlockTree.generate(content, block, decorator)));
 }
 
@@ -528,17 +527,9 @@ function getInlineStyleForNonCollapsedSelection(content: ContentState, selection
 }
 
 function lookUpwardForInlineStyle(content: ContentState, fromKey: string): DraftInlineStyle {
-  var previousBlock = content.getBlockBefore(fromKey);
-  var previousLength;
+  var lastNonEmpty = content.getBlockMap().reverse().skipUntil((_, k) => k === fromKey).skip(1).skipUntil((block, _) => block.getLength()).first();
 
-  while (previousBlock) {
-    previousLength = previousBlock.getLength();
-    if (previousLength) {
-      return previousBlock.getInlineStyleAt(previousLength - 1);
-    }
-    previousBlock = content.getBlockBefore(previousBlock.getKey());
-  }
-
+  if (lastNonEmpty) return lastNonEmpty.getInlineStyleAt(lastNonEmpty.getLength() - 1);
   return OrderedSet();
 }
 
