@@ -9024,8 +9024,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // Track the current scroll position so that it can be forced back in place
 	  // after the editor regains control of the DOM.
 	  var editorNode = ReactDOM.findDOMNode(editor.editor);
+	  console.log('EDITOR NODE', editorNode);
 	  var scrollParent = Style.getScrollParent(editorNode);
+	  console.log('SCROLL PARENT', scrollParent);
 	  var scrollPosition = getScrollPosition(scrollParent);
+	  console.log('SCROLL POSITION', scrollPosition);
 
 	  var fragment = getFragmentFromSelection(editorState);
 	  editor.setClipboard(fragment);
