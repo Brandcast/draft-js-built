@@ -8996,6 +8996,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var DraftModifier = __webpack_require__(5);
 	var EditorState = __webpack_require__(3);
 	var Style = __webpack_require__(32);
+	var ReactDOM = __webpack_require__(13);
 
 	var getFragmentFromSelection = __webpack_require__(47);
 	var getScrollPosition = __webpack_require__(35);
@@ -9021,12 +9022,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  // Track the current scroll position so that it can be forced back in place
 	  // after the editor regains control of the DOM.
-	  // $FlowFixMe e.target should be an instanceof Node
-	  var scrollParent = Style.getScrollParent(e.target);
-
-	  var _getScrollPosition = getScrollPosition(scrollParent),
-	      x = _getScrollPosition.x,
-	      y = _getScrollPosition.y;
+	  var editorNode = ReactDOM.findDOMNode(editor.editor);
+	  var scrollParent = Style.getScrollParent(editorNode);
+	  var scrollPosition = getScrollPosition(scrollParent);
 
 	  var fragment = getFragmentFromSelection(editorState);
 	  editor.setClipboard(fragment);
@@ -9036,7 +9034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  // Let native `cut` behavior occur, then recover control.
 	  setTimeout(function () {
-	    editor.restoreEditorDOM({ x: x, y: y });
+	    editor.restoreEditorDOM(scrollPosition);
 	    editor.exitCurrentMode();
 	    editor.update(removeFragment(editorState));
 	  }, 0);
