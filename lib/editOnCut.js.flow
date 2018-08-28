@@ -7,19 +7,21 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @providesModule editOnCut
+ * @format
  * @flow
  */
 
 'use strict';
 
-import type DraftEditor from './DraftEditor.react';
+import type DraftEditor from 'DraftEditor.react';
 
-const DraftModifier = require('./DraftModifier');
-const EditorState = require('./EditorState');
-const Style = require('fbjs/lib/Style');
+const DraftModifier = require('DraftModifier');
+const EditorState = require('EditorState');
+const Style = require('Style');
+const ReactDOM = require('ReactDOM');
 
-const getFragmentFromSelection = require('./getFragmentFromSelection');
-const getScrollPosition = require('fbjs/lib/getScrollPosition');
+const getFragmentFromSelection = require('getFragmentFromSelection');
+const getScrollPosition = require('getScrollPosition');
 
 /**
  * On `cut` events, native behavior is allowed to occur so that the system
@@ -42,9 +44,9 @@ function editOnCut(editor: DraftEditor, e: SyntheticClipboardEvent<>): void {
 
   // Track the current scroll position so that it can be forced back in place
   // after the editor regains control of the DOM.
-  // $FlowFixMe e.target should be an instanceof Node
-  const scrollParent = Style.getScrollParent(e.target);
-  const { x, y } = getScrollPosition(scrollParent);
+  const editorNode = ReactDOM.findDOMNode(editor.editor);
+  const scrollParent = Style.getScrollParent(editorNode);
+  const scrollPosition = getScrollPosition(scrollParent);
 
   const fragment = getFragmentFromSelection(editorState);
   editor.setClipboard(fragment);
@@ -54,14 +56,18 @@ function editOnCut(editor: DraftEditor, e: SyntheticClipboardEvent<>): void {
 
   // Let native `cut` behavior occur, then recover control.
   setTimeout(() => {
-    editor.restoreEditorDOM({ x, y });
+    editor.restoreEditorDOM(scrollPosition);
     editor.exitCurrentMode();
     editor.update(removeFragment(editorState));
   }, 0);
 }
 
 function removeFragment(editorState: EditorState): EditorState {
-  const newContent = DraftModifier.removeRange(editorState.getCurrentContent(), editorState.getSelection(), 'forward');
+  const newContent = DraftModifier.removeRange(
+    editorState.getCurrentContent(),
+    editorState.getSelection(),
+    'forward',
+  );
   return EditorState.push(editorState, newContent, 'remove-range');
 }
 
