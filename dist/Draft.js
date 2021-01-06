@@ -9535,7 +9535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // `SelectionState`.  Else, update the ContentState with the new text
 	    var currentlySelectedChars = editorState.getCurrentContent().getPlainText().slice(selectionStart, selectionEnd);
 	    if (chars === currentlySelectedChars) {
-	      this.update(EditorState.forceSelection(editorState, selection.merge({
+	      editor.update(EditorState.forceSelection(editorState, selection.merge({
 	        focusOffset: selectionEnd
 	      })));
 	    } else {
